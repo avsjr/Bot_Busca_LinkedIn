@@ -1,0 +1,32 @@
+name: Bot Diário de Vagas Dados
+
+on:
+  schedule:
+    - cron: '0 8 * * 1-5'
+  workflow_dispatch:
+
+jobs:
+  executar-bot:
+    runs-on: ubuntu-latest
+    # A LINHA 'environment: Producao' FOI APAGADA DAQUI
+    steps:
+      - name: Checkout do Repositório
+        uses: actions/checkout@v4
+        
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          
+      - name: Instalar Dependências
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          
+      - name: Executar o Motor ETL
+        env:
+          BUSCA_LINKEDIN_API: ${{ secrets.BUSCA_LINKEDIN_API }}  # <-- NOME NOVO ATUALIZADO
+          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+          GMAIL_USER: ${{ secrets.GMAIL_USER }}
+          GMAIL_PASSWORD: ${{ secrets.GMAIL_PASSWORD }}
+        run: python bot_dados.py
