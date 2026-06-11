@@ -18,8 +18,9 @@ META_TOTAL_GLOBAL = 400
 META_POR_TERMO = 80
 
 TERMOS_BUSCA = [
-    "Dados", "Data", "Analytics", "data analyst",
-    "Cientista de Dados", "Business Intelligence", "Power BI", "data engenieer"
+    "data", "dados", "data analyst", "analista de dados", 
+    "data engineer", "engenheiro de dados", "analytics", 
+    "data scientist", "cientista de dados", "Business Inteligence"
 ]
 
 try:
@@ -48,7 +49,7 @@ class DadosMercadoData(BaseModel):
     modelo_trabalho: str = Field(description="Classifique como: 'Presencial', 'Híbrido', 'Remoto' ou 'Não Informado'.")
     categoria_hierarquica: str = Field(description="Ex: 'Especialista/Sênior', 'Pleno/Técnico', 'Júnior/Operacional'.")
     ferramentas_exigidas: list[str] = Field(description="Ex: 'Python', 'SQL', 'Power BI', 'Fabric', etc.")
-    salario_na_descricao: str | None = Field(description="Valor explícito se houver.")
+    salario_na_descricao: str = Field(description="Valor explícito. Se não houver, escreva 'Não Informado'.") 
     salario_estimado_ia: str = Field(description="Estimativa de mercado.")
     hard_skills: list[str] = Field(description="Competências técnicas.")
     soft_skills: list[str] = Field(description="Competências comportamentais.")
@@ -135,7 +136,7 @@ df_reprovado = pd.DataFrame()
 if not df_bruto.empty:
     print(f"\n\n🧹 ETAPA B: Filtrando vagas válidas (Título e Tempo)...")
     
-    termos_aceitos = ['data', 'dados', 'analytics', 'bi', 'business intelligence', 'data analyst', 'powerbi', 'power bi', 'data specialist', 'inteligência de negócio', 'engenheiro de dados', 'cientista de dados', 'data engineer', 'data scientist']
+    termos_aceitos = ['data', 'dados', 'analytics', 'bi', 'business intelligence', 'data analyst', 'powerbi', 'power bi', 'data specialist', 'engenheiro de dados', 'cientista de dados', 'data engineer', 'data scientist']
     mask_titulo = df_bruto['titulo'].str.contains('|'.join(termos_aceitos), case=False, na=False)
 
     termos_velhos = ['semana', 'mês', 'meses', 'ano', 'week', 'month', 'year', '2 dias', '3 dias', '4 dias', '5 dias', '6 dias', '2 days', '3 days', '4 days', '5 days', '6 days']
