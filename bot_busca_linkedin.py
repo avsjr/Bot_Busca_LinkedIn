@@ -34,7 +34,7 @@ except Exception as e:
     exit(1)
 
 headers_rapid = {
-    "x-rapidapi-host": "jobs-api14.p.rapidapi.com",
+    "x-rapidapi-host": "linkedin-job-search5.p.rapidapi.com", 
     "x-rapidapi-key": RAPIDAPI_KEY
 }
 
@@ -54,7 +54,7 @@ class DadosMercadoData(BaseModel):
     soft_skills: list[str] = Field(description="Competências comportamentais.")
 
 # ==============================================================================
-# 3. ETAPA A: EXTRAÇÃO (API LINKEDIN)
+# 3. ETAPA A: EXTRAÇÃO (API LINKEDIN NOVA)
 # ==============================================================================
 vagas_unicas = {}
 termos_pesquisados = []
@@ -65,30 +65,36 @@ for termo in TERMOS_BUSCA:
     termos_pesquisados.append(termo)
     print(f"   Buscando: '{termo}'... ", end="")
 
-    next_token = None
+    start_offset = 0 # API nova usa paginação numérica
     count_termo = 0
 
     while count_termo < META_POR_TERMO:
         try:
             params = {
-                "query": termo, "location": "Brazil", "employmentTypes": "fulltime",
-                "datePosted": "day", "workplaceTypes": "remote"
+                "keywords": termo, 
+                "location": "Brazil", 
+                "datePosted": "past-24h", # ATUALIZADO
+                "remote": "remote",       # ATUALIZADO
+                "start": start_offset     # ATUALIZADO
             }
-            if next_token: params["token"] = next_token
 
             time.sleep(1.5)
-            resp = requests.get("https://jobs-api14.p.rapidapi.com/v2/linkedin/search", headers=headers_rapid, params=params).json()
+            # URL ATUALIZADA
+            resp = requests.get("https://linkedin-job-search5.p.rapidapi.com/search", headers=headers_rapid, params=params).json()
 
-            if 'data' not in resp or not resp['data']: break
-            for v in resp['data']:
+            # ATUALIZADO: A API nova devolve as vagas na chave 'jobs' e não em 'data'
+            if 'jobs' not in resp or not resp['jobs']: break
+            
+            for v in resp['jobs']:
                 if v['id'] not in vagas_unicas: vagas_unicas[v['id']] = v
 
-            count_termo += len(resp['data'])
+            count_termo += len(resp['jobs'])
             if len(vagas_unicas) >= META_TOTAL_GLOBAL: break
             
-            next_token = resp.get('meta', {}).get('nextToken')
-            if not next_token: break
-        except: break
+            start_offset += 10 # Paginação da API nova pula de 10 em 10
+        except Exception as e:
+            # print(f"Erro na busca: {e}") # Descomente se precisar debugar
+            break
 
     print(f"[{count_termo} encontradas brutas]")
 
@@ -100,15 +106,21 @@ for i, vaga in enumerate(ids_vagas):
     print(f"\r   Baixando [{i+1}/{len(ids_vagas)}]...", end="")
     try:
         time.sleep(1.2)
-        r = requests.get("https://jobs-api14.p.rapidapi.com/v2/linkedin/get", headers=headers_rapid, params={"id": vaga.get('id')})
+        # URL ATUALIZADA para pegar detalhes da vaga
+        r = requests.get(f"https://linkedin-job-search5.p.rapidapi.com/job/{vaga.get('id')}", headers=headers_rapid)
         if r.status_code == 200:
-            detalhe = r.json().get('data', {})
+            detalhe = r.json().get('job', {}) # API nova devolve o detalhe em 'job'
             desc = detalhe.get('description', '')
+            
             if desc and len(str(desc)) > 50:
                 dados_brutos.append({
-                    "id": vaga.get('id'), "titulo": vaga.get('title'), "empresa": vaga.get('companyName'),
-                    "localidade_api": vaga.get('location', 'Não Informado'), "data_publicacao": vaga.get('datePosted') or vaga.get('postedTimeAgo'),
-                    "link": detalhe.get('linkedinUrl'), "descricao_completa": desc
+                    "id": vaga.get('id'), 
+                    "titulo": vaga.get('title'), 
+                    "empresa": detalhe.get('company'), # ATUALIZADO
+                    "localidade_api": detalhe.get('location', 'Não Informado'), 
+                    "data_publicacao": detalhe.get('postedDate') or detalhe.get('postedDateText'), # ATUALIZADO
+                    "link": detalhe.get('jobUrl'), # ATUALIZADO
+                    "descricao_completa": desc
                 })
     except: pass
 
@@ -123,7 +135,7 @@ df_reprovado = pd.DataFrame()
 if not df_bruto.empty:
     print(f"\n\n🧹 ETAPA B: Filtrando vagas válidas (Título e Tempo)...")
     
-    termos_aceitos = ['data', 'dados', 'analytics', 'bi', 'business intelligence', 'data analyst', 'fabric', 'powerbi', 'power bi', 'data specialist', 'inteligência de negócio', 'engenharia de dados', 'cientista de dados', 'engineer', 'scientist']
+    termos_aceitos = ['data', 'dados', 'analytics', 'bi', 'business intelligence', 'data analyst', 'powerbi', 'power bi', 'data specialist', 'inteligência de negócio', 'engenheiro de dados', 'cientista de dados', 'data engineer', 'data scientist']
     mask_titulo = df_bruto['titulo'].str.contains('|'.join(termos_aceitos), case=False, na=False)
 
     termos_velhos = ['semana', 'mês', 'meses', 'ano', 'week', 'month', 'year', '2 dias', '3 dias', '4 dias', '5 dias', '6 dias', '2 days', '3 days', '4 days', '5 days', '6 days']
