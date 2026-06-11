@@ -18,8 +18,8 @@ META_TOTAL_GLOBAL = 400
 META_POR_TERMO = 80
 
 TERMOS_BUSCA = [
-    "Dados", "Data", "Analytics", "Inteligência de Negócio",
-    "Cientista de Dados", "Business Intelligence", "Power BI", "Fabric"
+    "Dados", "Data", "Analytics", "data analyst",
+    "Cientista de Dados", "Business Intelligence", "Power BI", "data engenieer"
 ]
 
 try:
@@ -175,7 +175,8 @@ if not df_aprovado.empty:
             
             time.sleep(4.5)
         except Exception as e:
-            time.sleep(10)
+            print(f"\n❌ Erro crítico no Gemini na vaga {i+1}: {e}")
+            time.sleep(2)
             pass
 
 # ==============================================================================
