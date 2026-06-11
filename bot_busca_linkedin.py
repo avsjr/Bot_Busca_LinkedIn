@@ -24,7 +24,7 @@ TERMOS_BUSCA = [
 
 try:
     # Lendo chaves de ambiente (Injetadas pelo GitHub Actions)
-    RAPIDAPI_KEY = os.environ.get('BUSCA_LINKEDIN_API') # <-- SÓ MUDAR AQUI DENTRO
+    RAPIDAPI_KEY = os.environ.get('RAPIDAPI_KEY')
     GOOGLE_API_KEY = os.environ.get('GOOGLE_API_KEY')
 
     if not all([RAPIDAPI_KEY, GOOGLE_API_KEY]):
