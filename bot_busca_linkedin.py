@@ -161,7 +161,7 @@ if not df_aprovado.empty:
         try:
             prompt = f"Analise vaga de Dados. Local: '{row.get('localidade_api', '')}'. Extraia as ferramentas (Stack). Identifique se é Presencial, Híbrido ou Remoto. Salário: Estime. Vaga: {row.get('descricao_completa', '')}"
             response = client_genai.models.generate_content(
-                model='gemini-2.0-flash', contents=prompt,
+                model='gemini-2.5-flash', contents=prompt,
                 config=types.GenerateContentConfig(response_mime_type='application/json', response_schema=DadosMercadoData)
             )
             insights = response.parsed.model_dump()
